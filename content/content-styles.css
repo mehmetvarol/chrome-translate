@@ -1,0 +1,545 @@
+/**
+ * Content Styles - Glassmorphic Design
+ * Modern, beautiful, and performant UI
+ */
+
+/* ==================== Translate Button ==================== */
+
+.cevir-translate-button {
+  position: absolute;
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4),
+              0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+  transform: scale(0);
+  opacity: 0;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  user-select: none;
+}
+
+.cevir-translate-button.cevir-show {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.cevir-translate-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5),
+              0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+}
+
+.cevir-translate-button:active {
+  transform: scale(0.95);
+}
+
+.cevir-translate-button svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ==================== Translate Popup ==================== */
+
+.cevir-translate-popup {
+  position: absolute;
+  z-index: 999998;
+  width: 400px;
+  max-width: calc(100vw - 40px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15),
+              0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+.cevir-translate-popup.cevir-show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .cevir-translate-popup {
+    background: rgba(30, 30, 35, 0.95);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+  }
+}
+
+/* ==================== Popup Header ==================== */
+
+.cevir-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  .cevir-popup-header {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.cevir-popup-header.cevir-error {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
+}
+
+.cevir-popup-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cevir-popup-title {
+    color: #f9fafb;
+  }
+}
+
+.cevir-close-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  border-radius: 8px;
+  font-size: 20px;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cevir-close-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #374151;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cevir-close-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: #9ca3af;
+  }
+
+  .cevir-close-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #d1d5db;
+  }
+}
+
+/* ==================== Popup Body ==================== */
+
+.cevir-popup-body {
+  padding: 20px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.cevir-original-text {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cevir-original-text {
+    color: #9ca3af;
+  }
+}
+
+.cevir-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.1), transparent);
+  margin: 12px 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cevir-divider {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  }
+}
+
+.cevir-translated-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+  line-height: 1.7;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cevir-translated-text {
+    color: #f9fafb;
+  }
+}
+
+/* ==================== Loading States ==================== */
+
+.cevir-loading-pulse {
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 50%;
+  animation: cevir-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes cevir-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+}
+
+.cevir-loading-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cevir-skeleton-line {
+  height: 16px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.05) 25%,
+    rgba(0, 0, 0, 0.08) 50%,
+    rgba(0, 0, 0, 0.05) 75%
+  );
+  background-size: 200% 100%;
+  border-radius: 4px;
+  animation: cevir-shimmer 1.5s infinite;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cevir-skeleton-line {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.05) 25%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0.05) 75%
+    );
+    background-size: 200% 100%;
+  }
+}
+
+.cevir-skeleton-line.short {
+  width: 60%;
+}
+
+@keyframes cevir-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ==================== Error Message ==================== */
+
+.cevir-error-message {
+  padding: 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border-left: 3px solid #ef4444;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #dc2626;
+  line-height: 1.5;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cevir-error-message {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+  }
+}
+
+.cevir-error-hint {
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 6px;
+  font-size: 12px;
+  color: #3b82f6;
+  line-height: 1.5;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cevir-error-hint {
+    background: rgba(59, 130, 246, 0.15);
+    color: #93c5fd;
+  }
+}
+
+/* ==================== Popup Footer ==================== */
+
+.cevir-popup-footer {
+  padding: 12px 20px;
+  background: rgba(0, 0, 0, 0.02);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cevir-popup-footer {
+    background: rgba(255, 255, 255, 0.02);
+    border-top-color: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.cevir-copy-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cevir-copy-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.cevir-copy-btn:active {
+  transform: translateY(0);
+}
+
+.cevir-copy-btn.cevir-copied {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.cevir-copy-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ==================== Scrollbar Styling ==================== */
+
+.cevir-popup-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cevir-popup-body::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 3px;
+}
+
+.cevir-popup-body::-webkit-scrollbar-thumb {
+  background: rgba(102, 126, 234, 0.3);
+  border-radius: 3px;
+}
+
+.cevir-popup-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(102, 126, 234, 0.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  .cevir-popup-body::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .cevir-popup-body::-webkit-scrollbar-thumb {
+    background: rgba(102, 126, 234, 0.4);
+  }
+
+  .cevir-popup-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(102, 126, 234, 0.6);
+  }
+}
+
+/* ==================== Page Translation Progress Bar ==================== */
+
+.cevir-page-translation-bar {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100px);
+  z-index: 999997;
+  min-width: 400px;
+  max-width: 90vw;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2),
+              0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cevir-page-translation-bar.cevir-show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+@media (prefers-color-scheme: dark) {
+  .cevir-page-translation-bar {
+    background: rgba(30, 30, 35, 0.98);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+  }
+}
+
+.cevir-progress-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cevir-progress-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cevir-progress-text {
+    color: #f9fafb;
+  }
+}
+
+.cevir-progress-bar-container {
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cevir-progress-bar-container {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.cevir-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.cevir-progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: cevir-progress-shimmer 1.5s infinite;
+}
+
+@keyframes cevir-progress-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.cevir-progress-cancel {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(239, 68, 68, 0.1);
+  border: none;
+  border-radius: 10px;
+  color: #dc2626;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cevir-progress-cancel:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: scale(1.05);
+}
+
+.cevir-progress-cancel:active {
+  transform: scale(0.95);
+}
+
+/* Complete state */
+.cevir-page-translation-bar.cevir-complete .cevir-progress-bar-fill {
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+}
+
+.cevir-page-translation-bar.cevir-complete .cevir-progress-text {
+  color: #059669;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cevir-page-translation-bar.cevir-complete .cevir-progress-text {
+    color: #34d399;
+  }
+}
+
+/* Error state */
+.cevir-page-translation-bar.cevir-error .cevir-progress-bar-fill {
+  background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+}
+
+.cevir-page-translation-bar.cevir-error .cevir-progress-text {
+  color: #dc2626;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cevir-page-translation-bar.cevir-error .cevir-progress-text {
+    color: #fca5a5;
+  }
+}

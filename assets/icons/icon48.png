@@ -1,0 +1,40 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient Background -->
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Circle -->
+  <rect width="128" height="128" rx="28" fill="url(#grad)"/>
+
+  <!-- Translation Icon -->
+  <g transform="translate(24, 32)">
+    <!-- Left side (source language) -->
+    <path d="M10 12 L30 12 M20 2 L20 12 M15 32 L25 12 L35 32"
+          stroke="white"
+          stroke-width="6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          fill="none"/>
+
+    <!-- Right side (target language) -->
+    <path d="M45 32 L35 12 L45 12 M60 32 L50 12 L65 12"
+          stroke="white"
+          stroke-width="6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          fill="none"
+          opacity="0.9"/>
+
+    <!-- Arrow indicating translation -->
+    <path d="M30 48 L50 48 M45 43 L50 48 L45 53"
+          stroke="white"
+          stroke-width="4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          fill="none"/>
+  </g>
+</svg>
