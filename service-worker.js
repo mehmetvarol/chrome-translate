@@ -7,7 +7,7 @@
 // ==================== CONSTANTS ====================
 
 const GEMINI_API_KEY = "AIzaSyCbUw01dHYNrCDU1XwYpSwFD6fUXylssPc";
-const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 const TARGET_LANGUAGE = "Türkçe";
 const MAX_TEXT_LENGTH = 5000;
 const TRANSLATION_TIMEOUT = 10000; // 10 seconds
@@ -151,8 +151,7 @@ class Storage {
 
 // Extension yüklendiğinde
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('✨ Çevir Extension yüklendi');
-  console.log('🔑 API Key:', GEMINI_API_KEY ? 'Mevcut ✓' : 'Eksik ✗');
+  // Extension yüklendi
 });
 
 // Keyboard shortcut handler

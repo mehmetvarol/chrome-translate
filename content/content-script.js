@@ -118,7 +118,6 @@ function applyTranslations(textNodes, translations) {
       successCount++;
     } else {
       failureCount++;
-      console.warn('Translation failed for:', node.textContent, translation.error);
     }
   });
 
@@ -193,8 +192,6 @@ let pageTranslationBar = null;
 initialize();
 
 function initialize() {
-  console.log('✨ Çevir content script loaded');
-
   document.addEventListener('mouseup', handleTextSelection);
   document.addEventListener('keydown', handleKeyDown);
 
@@ -511,13 +508,11 @@ function escapeHtml(text) {
  */
 async function translateWholePage() {
   if (isTranslating) {
-    console.log('Translation already in progress');
     return;
   }
 
   // Zaten çevrilmiş mi?
   if (isPageTranslated()) {
-    console.log('Page already translated');
     return;
   }
 
@@ -535,8 +530,6 @@ async function translateWholePage() {
     if (textsToTranslate.length === 0) {
       throw new Error('Çevrilebilir metin bulunamadı');
     }
-
-    console.log(`Found ${textsToTranslate.length} texts to translate`);
 
     // Batch'lere ayır (10'ar 10'ar)
     const batches = createBatches(textsToTranslate, 10);
@@ -614,8 +607,6 @@ function togglePageTranslation() {
   if (isPageTranslated()) {
     // Orijinale döndür
     const restoredCount = restoreOriginalTexts();
-    console.log(`Restored ${restoredCount} texts to original`);
-
     // Feedback göster
     showPageTranslationBar();
     updateProgressBar(`↺ ${restoredCount} metin orijinal diline döndürüldü`, 100, true);
