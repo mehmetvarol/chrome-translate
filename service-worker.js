@@ -236,6 +236,7 @@ async function handleTranslation(text, sendResponse) {
  */
 async function handleBatchTranslation(texts, sendResponse) {
   try {
+    console.log('🔄 Batch translation başladı:', texts.length, 'metin');
     const translator = getTranslator(GEMINI_API_KEY);
     const translations = [];
 
@@ -251,12 +252,29 @@ async function handleBatchTranslation(texts, sendResponse) {
       const result = await translator.translate(text);
 
       if (result.success) {
+        console.log(`✅ Çeviri ${i + 1}/${texts.length}:`, text.substring(0, 50), '→', result.translation.substring(0, 50));
         translations.push({ success: true, translation: result.translation });
       } else {
+        // API quota hatası kontrolü
+        if (result.error && (result.error.includes('quota') || result.error.includes('Quota') || result.error.includes('429'))) {
+          console.error('🚫 API Quota limit aşıldı!');
+          // Kalan metinler için hata ekle
+          for (let j = i; j < texts.length; j++) {
+            translations.push({
+              success: false,
+              error: 'API quota limit aşıldı. Lütfen yarın tekrar deneyin.',
+              original: texts[j]
+            });
+          }
+          break; // Döngüyü kır, başka istek gönderme
+        }
+
+        console.error(`❌ Çeviri ${i + 1}/${texts.length} başarısız:`, result.error);
         translations.push({ success: false, error: result.error, original: text });
       }
     }
 
+    console.log('✅ Batch translation tamamlandı:', translations.length, 'çeviri');
     sendResponse({
       success: true,
       translations: translations

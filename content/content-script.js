@@ -17,10 +17,11 @@ const EXTENSION_CLASS_PREFIX = 'cevir-';
 
 /**
  * Sayfadaki çevrilebilir text node'ları bulur
+ * IMPROVED: Node referansları yerine XPath kullan (React sayfaları için)
  */
 function extractTranslatableTexts() {
   const textsToTranslate = [];
-  const textNodes = [];
+  const nodeInfo = []; // Node yerine node bilgisi sakla
 
   // TreeWalker ile tüm text node'ları bul
   const walker = document.createTreeWalker(
@@ -71,15 +72,71 @@ function extractTranslatableTexts() {
   let node;
   while (node = walker.nextNode()) {
     const text = node.textContent.trim();
+    const parent = node.parentElement;
 
     // Zaten çevrilmiş mi kontrol et
-    if (!node.parentElement.hasAttribute('data-original')) {
+    if (parent && !parent.__translated) {
       textsToTranslate.push(text);
-      textNodes.push(node);
+
+      // Node bilgisini sakla (direkt referans yerine)
+      nodeInfo.push({
+        node: node,
+        parent: parent,
+        originalText: text,
+        // Unique identifier olarak parent'a ID ekle
+        parentId: parent.dataset.translateId || (parent.dataset.translateId = 'trans-' + Date.now() + '-' + Math.random())
+      });
     }
   }
 
-  return { textsToTranslate, textNodes };
+  return { textsToTranslate, textNodes: nodeInfo };
+}
+
+/**
+ * Sayfadaki çevrilebilir attribute'ları bulur (placeholder, alt, title, aria-label)
+ */
+function extractTranslatableAttributes() {
+  const attributesToTranslate = [];
+  const attributeElements = [];
+
+  // Çevrilecek attribute'lar ve selector'ları
+  const attributeSelectors = [
+    { selector: 'input[placeholder], textarea[placeholder]', attr: 'placeholder' },
+    { selector: 'img[alt]', attr: 'alt' },
+    { selector: '[title]', attr: 'title' },
+    { selector: '[aria-label]', attr: 'aria-label' }
+  ];
+
+  attributeSelectors.forEach(({ selector, attr }) => {
+    const elements = document.querySelectorAll(selector);
+
+    elements.forEach(element => {
+      // Extension'ın kendi elementlerini atla
+      if (element.className &&
+          typeof element.className === 'string' &&
+          element.className.includes(EXTENSION_CLASS_PREFIX)) {
+        return;
+      }
+
+      // Hidden elementleri atla
+      const style = window.getComputedStyle(element);
+      if (style.display === 'none' || style.visibility === 'hidden') {
+        return;
+      }
+
+      const value = element.getAttribute(attr);
+      if (value && value.trim().length >= 3) {
+        // Zaten çevrilmiş mi kontrol et
+        const dataAttr = `data-original-${attr}`;
+        if (!element.hasAttribute(dataAttr)) {
+          attributesToTranslate.push(value.trim());
+          attributeElements.push({ element, attr });
+        }
+      }
+    });
+  });
+
+  return { attributesToTranslate, attributeElements };
 }
 
 /**
@@ -95,26 +152,84 @@ function createBatches(texts, batchSize = 10) {
 
 /**
  * Çevirileri DOM'a uygular
+ * IMPROVED: nodeInfo kullan (node + metadata)
  */
-function applyTranslations(textNodes, translations) {
+function applyTranslations(nodeInfoArray, translations) {
   let successCount = 0;
   let failureCount = 0;
 
-  textNodes.forEach((node, index) => {
-    if (!translations[index]) return;
+  nodeInfoArray.forEach((nodeInfo, index) => {
+    if (!translations[index]) {
+      console.warn(`Translation missing for index ${index}`);
+      failureCount++;
+      return;
+    }
 
     const translation = translations[index];
 
-    if (translation.success && translation.translation) {
+    if (!translation.success || !translation.translation) {
+      console.warn(`Translation failed for index ${index}:`, translation.error || 'No translation');
+      failureCount++;
+      return;
+    }
+
+    try {
+      const { node, parent } = nodeInfo;
+
+      // Node ve parent hala DOM'da mı kontrol et
+      if (!document.body.contains(node) || !document.body.contains(parent)) {
+        console.warn(`Node or parent not in DOM anymore for index ${index}`);
+        failureCount++;
+        return;
+      }
+
       // Orijinal metni sakla
-      const parent = node.parentElement;
-      if (!parent.hasAttribute('data-original')) {
-        parent.setAttribute('data-original', node.textContent);
+      if (!node.__originalText) {
+        node.__originalText = node.textContent;
+      }
+
+      // Parent'ı işaretle
+      if (!parent.__translated) {
+        parent.__translated = true;
         parent.setAttribute('data-translated', 'true');
       }
 
       // Çeviriyi uygula
       node.textContent = translation.translation;
+      successCount++;
+
+    } catch (error) {
+      console.error(`Translation application error at index ${index}:`, error);
+      failureCount++;
+    }
+  });
+
+  console.log(`✅ applyTranslations completed: ${successCount} success, ${failureCount} failed out of ${nodeInfoArray.length} total`);
+  return { successCount, failureCount };
+}
+
+/**
+ * Attribute çevirilerini uygular (placeholder, alt, title, aria-label)
+ */
+function applyAttributeTranslations(attributeElements, translations) {
+  let successCount = 0;
+  let failureCount = 0;
+
+  attributeElements.forEach(({ element, attr }, index) => {
+    if (!translations[index]) return;
+
+    const translation = translations[index];
+
+    if (translation.success && translation.translation) {
+      // Orijinal attribute değerini sakla
+      const dataAttr = `data-original-${attr}`;
+      if (!element.hasAttribute(dataAttr)) {
+        element.setAttribute(dataAttr, element.getAttribute(attr));
+        element.setAttribute('data-attr-translated', 'true');
+      }
+
+      // Çeviriyi uygula
+      element.setAttribute(attr, translation.translation);
       successCount++;
     } else {
       failureCount++;
@@ -125,29 +240,56 @@ function applyTranslations(textNodes, translations) {
 }
 
 /**
- * Sayfayı orijinal diline geri döndürür
+ * Sayfayı orijinal diline geri döndürür (metinler ve attribute'lar)
  */
 function restoreOriginalTexts() {
-  const translatedElements = document.querySelectorAll('[data-translated="true"]');
   let restoredCount = 0;
 
+  // Text çevirilerini geri yükle
+  const translatedElements = document.querySelectorAll('[data-translated="true"]');
   translatedElements.forEach(element => {
-    const original = element.getAttribute('data-original');
-    if (original) {
-      // İçerideki text node'u bul ve güncelle
-      const walker = document.createTreeWalker(
-        element,
-        NodeFilter.SHOW_TEXT,
-        null
-      );
+    // İçerideki TÜM text node'ları bul ve geri yükle
+    const walker = document.createTreeWalker(
+      element,
+      NodeFilter.SHOW_TEXT,
+      null
+    );
 
-      const textNode = walker.nextNode();
-      if (textNode) {
-        textNode.textContent = original;
-        element.removeAttribute('data-translated');
+    let textNode;
+    while (textNode = walker.nextNode()) {
+      // Orijinal metni geri yükle
+      if (textNode.__originalText) {
+        textNode.textContent = textNode.__originalText;
+        delete textNode.__originalText;
         restoredCount++;
       }
     }
+
+    // Parent'tan flag'leri temizle
+    delete element.__translated;
+    element.removeAttribute('data-translated');
+    if (element.dataset.translateId) {
+      delete element.dataset.translateId;
+    }
+  });
+
+  // Attribute çevirilerini geri yükle
+  const attributeTranslatedElements = document.querySelectorAll('[data-attr-translated="true"]');
+  attributeTranslatedElements.forEach(element => {
+    const attributes = ['placeholder', 'alt', 'title', 'aria-label'];
+
+    attributes.forEach(attr => {
+      const dataAttr = `data-original-${attr}`;
+      const original = element.getAttribute(dataAttr);
+
+      if (original) {
+        element.setAttribute(attr, original);
+        element.removeAttribute(dataAttr);
+        restoredCount++;
+      }
+    });
+
+    element.removeAttribute('data-attr-translated');
   });
 
   return restoredCount;
@@ -157,21 +299,27 @@ function restoreOriginalTexts() {
  * Sayfa çevrilmiş mi kontrol eder
  */
 function isPageTranslated() {
-  return document.querySelectorAll('[data-translated="true"]').length > 0;
+  const hasTextTranslations = document.querySelectorAll('[data-translated="true"]').length > 0;
+  const hasAttrTranslations = document.querySelectorAll('[data-attr-translated="true"]').length > 0;
+  return hasTextTranslations || hasAttrTranslations;
 }
 
 /**
  * İstatistikleri döner
  */
 function getTranslationStats() {
-  const translated = document.querySelectorAll('[data-translated="true"]').length;
+  const translatedTexts = document.querySelectorAll('[data-translated="true"]').length;
+  const translatedAttrs = document.querySelectorAll('[data-attr-translated="true"]').length;
+  const translated = translatedTexts + translatedAttrs;
+
   const { textsToTranslate } = extractTranslatableTexts();
-  const total = textsToTranslate.length + translated;
+  const { attributesToTranslate } = extractTranslatableAttributes();
+  const total = textsToTranslate.length + attributesToTranslate.length + translated;
 
   return {
     translated,
     total,
-    remaining: textsToTranslate.length,
+    remaining: textsToTranslate.length + attributesToTranslate.length,
     percentage: total > 0 ? Math.round((translated / total) * 100) : 0
   };
 }
@@ -319,16 +467,21 @@ async function translateText(text) {
   showTranslatePopup(text);
 
   try {
+    // Chrome runtime kontrolü
+    if (!chrome.runtime || !chrome.runtime.id) {
+      throw new Error('Extension context invalidated. Lütfen sayfayı yenileyin.');
+    }
+
     // Background script'e çeviri isteği gönder
     const response = await chrome.runtime.sendMessage({
       action: 'translate',
       text: text
     });
 
-    if (response.success) {
+    if (response && response.success) {
       updatePopupContent(response.translation, text);
     } else {
-      showPopupError(response.error || 'Çeviri başarısız oldu');
+      showPopupError(response?.error || 'Çeviri başarısız oldu');
     }
 
   } catch (error) {
@@ -504,7 +657,7 @@ function escapeHtml(text) {
 // ==================== PAGE TRANSLATION ====================
 
 /**
- * Sayfanın tamamını çevirir
+ * Sayfanın tamamını çevirir (metinler + attribute'lar)
  */
 async function translateWholePage() {
   if (isTranslating) {
@@ -523,19 +676,29 @@ async function translateWholePage() {
   showPageTranslationBar();
 
   try {
-    // Çevrilebilir metinleri bul
+    // 1. Çevrilebilir metinleri bul
     updateProgressBar('Sayfa analiz ediliyor...', 0);
     const { textsToTranslate, textNodes } = extractTranslatableTexts();
+    const { attributesToTranslate, attributeElements } = extractTranslatableAttributes();
 
-    if (textsToTranslate.length === 0) {
-      throw new Error('Çevrilebilir metin bulunamadı');
+    const totalItems = textsToTranslate.length + attributesToTranslate.length;
+
+    console.log('📊 Analiz sonuçları:', {
+      textsToTranslate: textsToTranslate.length,
+      attributesToTranslate: attributesToTranslate.length,
+      totalItems
+    });
+
+    if (totalItems === 0) {
+      throw new Error('Çevrilebilir içerik bulunamadı');
     }
 
-    // Batch'lere ayır (10'ar 10'ar)
-    const batches = createBatches(textsToTranslate, 10);
+    // 2. TÜM çevrilecek metinleri birleştir (text + attribute)
+    const allTexts = [...textsToTranslate, ...attributesToTranslate];
+    const batches = createBatches(allTexts, 10);
     const allTranslations = [];
 
-    // Her batch'i çevir
+    // 3. Her batch'i çevir
     for (let i = 0; i < batches.length; i++) {
       if (translationCancelled) {
         throw new Error('Çeviri iptal edildi');
@@ -550,16 +713,29 @@ async function translateWholePage() {
       );
 
       // Batch'i service worker'a gönder
-      const response = await chrome.runtime.sendMessage({
-        action: 'translate-batch',
-        texts: batch
-      });
+      try {
+        if (!chrome.runtime || !chrome.runtime.id) {
+          throw new Error('Extension context invalidated. Lütfen sayfayı yenileyin.');
+        }
 
-      if (response.success) {
-        allTranslations.push(...response.translations);
-      } else {
-        console.error('Batch translation failed:', response.error);
-        // Başarısız olanları da ekle (orijinal metinle)
+        const response = await chrome.runtime.sendMessage({
+          action: 'translate-batch',
+          texts: batch
+        });
+
+        if (response && response.success) {
+          console.log(`✅ Batch ${i + 1} çevrildi:`, response.translations.length, 'öğe');
+          allTranslations.push(...response.translations);
+        } else {
+          console.error('Batch translation failed:', response?.error);
+          // Başarısız olanları da ekle (orijinal metinle)
+          batch.forEach(text => {
+            allTranslations.push({ success: false, translation: text });
+          });
+        }
+      } catch (batchError) {
+        console.error('Batch translation error:', batchError);
+        // Hata durumunda orijinal metinleri ekle
         batch.forEach(text => {
           allTranslations.push({ success: false, translation: text });
         });
@@ -573,13 +749,34 @@ async function translateWholePage() {
       throw new Error('Çeviri iptal edildi');
     }
 
-    // Çevirileri uygula
+    // 4. Çevirileri uygula
     updateProgressBar('Çeviriler uygulanıyor...', 100);
-    const { successCount, failureCount } = applyTranslations(textNodes, allTranslations);
+
+    console.log('📝 Toplam çeviri sayısı:', allTranslations.length);
+    console.log('📝 İlk 3 çeviri örneği:', allTranslations.slice(0, 3));
+    console.log('📝 Text node sayısı:', textNodes.length);
+
+    // Text çevirilerini uygula
+    const textTranslations = allTranslations.slice(0, textsToTranslate.length);
+    console.log('📝 Text çevirileri uygulanacak:', textTranslations.length);
+    const textResult = applyTranslations(textNodes, textTranslations);
+    console.log('✅ Text çevirileri uygulandı:', textResult);
+
+    // DOM'da değişiklik oldu mu kontrol et
+    const translatedCount = document.querySelectorAll('[data-translated="true"]').length;
+    console.log('📊 DOM\'da işaretlenen element sayısı:', translatedCount);
+
+    // Attribute çevirilerini uygula
+    const attrTranslations = allTranslations.slice(textsToTranslate.length);
+    const attrResult = applyAttributeTranslations(attributeElements, attrTranslations);
+    console.log('✅ Attribute çevirileri uygulandı:', attrResult);
+
+    const totalSuccess = textResult.successCount + attrResult.successCount;
+    const totalFailure = textResult.failureCount + attrResult.failureCount;
 
     // Başarı mesajı göster
     updateProgressBar(
-      `✓ ${successCount} metin çevrildi ${failureCount > 0 ? `(${failureCount} hata)` : ''}`,
+      `✓ ${totalSuccess} öğe çevrildi ${totalFailure > 0 ? `(${totalFailure} hata)` : ''}`,
       100,
       true
     );

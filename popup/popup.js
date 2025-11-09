@@ -10,12 +10,28 @@ const STORAGE_KEYS = {
 };
 
 async function getHistory() {
-  const response = await chrome.runtime.sendMessage({ action: 'get-history' });
-  return response.success ? response.history : [];
+  try {
+    if (!chrome.runtime || !chrome.runtime.id) {
+      return [];
+    }
+    const response = await chrome.runtime.sendMessage({ action: 'get-history' });
+    return response && response.success ? response.history : [];
+  } catch (error) {
+    console.error('Failed to get history:', error);
+    return [];
+  }
 }
 
 async function clearHistoryStorage() {
-  return chrome.runtime.sendMessage({ action: 'clear-history' });
+  try {
+    if (!chrome.runtime || !chrome.runtime.id) {
+      return { success: false };
+    }
+    return chrome.runtime.sendMessage({ action: 'clear-history' });
+  } catch (error) {
+    console.error('Failed to clear history:', error);
+    return { success: false };
+  }
 }
 
 // ==================== POPUP LOGIC ====================
