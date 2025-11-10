@@ -1,8 +1,6 @@
 # API Keys & Sensitive Files
 # ⚠️ API anahtarlarını korumak için constants.js'i ignore ediyoruz
-# NOT: İlk commit'te zaten constants.js commit edilmiş olabilir
-# Eğer öyleyse git history'den silmeniz gerekir:
-# git rm --cached utils/constants.js
+utils/constants.js
 
 # Node modules
 node_modules/

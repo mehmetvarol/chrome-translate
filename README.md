@@ -31,16 +31,30 @@ Gemini AI ile güçlendirilmiş, glassmorphic tasarım dili ile tasarlanmış pr
 1. Bu repository'yi indirin veya clone edin:
    ```bash
    git clone [repository-url]
-   cd translate
+   cd chrome-translate
    ```
 
-2. Chrome'da şu adrese gidin: `chrome://extensions/`
+2. API anahtarınızı yapılandırın:
+   ```bash
+   # .env.example dosyasını .env olarak kopyalayın
+   cp .env.example .env
 
-3. Sağ üstteki **"Developer mode"** toggle'ını açın
+   # constants.example.js'i constants.js olarak kopyalayın
+   cp utils/constants.example.js utils/constants.js
+   ```
 
-4. **"Load unpacked"** butonuna tıklayın
+3. `utils/constants.js` dosyasını açın ve `YOUR_API_KEY_HERE` yerine kendi API anahtarınızı yazın:
+   ```javascript
+   export const GEMINI_API_KEY = "sizin-api-anahtariniz";
+   ```
 
-5. `translate` klasörünü seçin
+4. Chrome'da şu adrese gidin: `chrome://extensions/`
+
+5. Sağ üstteki **"Developer mode"** toggle'ını açın
+
+6. **"Load unpacked"** butonuna tıklayın
+
+7. `chrome-translate` klasörünü seçin
 
 ### 3. API Key'i Ayarlayın
 
@@ -130,18 +144,23 @@ translate/
 
 ### API Key Konfigürasyonu
 
+⚠️ **ÖNEMLİ GÜVENLİK NOTU**: API anahtarınızı asla git repository'sine commit etmeyin!
+
 API key'i iki şekilde ayarlayabilirsiniz:
 
-**1. UI üzerinden** (Önerilen):
+**1. UI üzerinden** (Önerilen - Production):
 - Extension popup'ında API key alanına yapıştırın
+- API key Chrome storage'da güvenli şekilde saklanır
 
 **2. Kod içinde** (Development):
-- `utils/constants.js` dosyasını açın
+- `utils/constants.example.js` dosyasını `utils/constants.js` olarak kopyalayın
 - `GEMINI_API_KEY` değişkenini güncelleyin:
 
 ```javascript
 export const GEMINI_API_KEY = 'YOUR_API_KEY_HERE';
 ```
+
+**Not**: `utils/constants.js` dosyası `.gitignore`'da yer almaktadır ve git'e commit edilmeyecektir.
 
 ### Icon Güncelleme
 
