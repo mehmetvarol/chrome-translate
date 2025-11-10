@@ -544,6 +544,74 @@ function makeDraggable(popup, dragHandle) {
 }
 
 /**
+ * Popup için en uygun konumu hesaplar (smart positioning)
+ */
+function calculateOptimalPosition(selectionRect) {
+  const POPUP_WIDTH = 400;
+  const POPUP_HEIGHT = 250; // Ortalama popup yüksekliği
+  const SPACING = 10; // Selection ile popup arasındaki boşluk
+
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const scrollY = window.scrollY;
+  const scrollX = window.scrollX;
+
+  // Seçili metnin viewport'taki konumu
+  const selectionTop = selectionRect.top;
+  const selectionBottom = selectionRect.bottom;
+  const selectionLeft = selectionRect.left;
+  const selectionRight = selectionRect.right;
+  const selectionCenterX = (selectionLeft + selectionRight) / 2;
+
+  // Mevcut alanları hesapla
+  const spaceAbove = selectionTop;
+  const spaceBelow = viewportHeight - selectionBottom;
+  const spaceLeft = selectionLeft;
+  const spaceRight = viewportWidth - selectionRight;
+
+  let finalX, finalY, transform;
+
+  // 1. Öncelik: ÜSTTE (varsayılan)
+  if (spaceAbove >= POPUP_HEIGHT + SPACING) {
+    finalX = Math.max(SPACING, Math.min(selectionCenterX - POPUP_WIDTH / 2, viewportWidth - POPUP_WIDTH - SPACING));
+    finalY = selectionTop + scrollY - SPACING;
+    transform = 'translateY(-100%)';
+  }
+  // 2. ALTTA
+  else if (spaceBelow >= POPUP_HEIGHT + SPACING) {
+    finalX = Math.max(SPACING, Math.min(selectionCenterX - POPUP_WIDTH / 2, viewportWidth - POPUP_WIDTH - SPACING));
+    finalY = selectionBottom + scrollY + SPACING;
+    transform = 'translateY(0)';
+  }
+  // 3. SAĞDA (dikey olarak ortalanmış)
+  else if (spaceRight >= POPUP_WIDTH + SPACING) {
+    finalX = selectionRight + scrollX + SPACING;
+    finalY = Math.max(SPACING + scrollY, Math.min(
+      (selectionTop + selectionBottom) / 2 + scrollY - POPUP_HEIGHT / 2,
+      viewportHeight + scrollY - POPUP_HEIGHT - SPACING
+    ));
+    transform = 'translateY(0)';
+  }
+  // 4. SOLDA (dikey olarak ortalanmış)
+  else if (spaceLeft >= POPUP_WIDTH + SPACING) {
+    finalX = selectionLeft + scrollX - POPUP_WIDTH - SPACING;
+    finalY = Math.max(SPACING + scrollY, Math.min(
+      (selectionTop + selectionBottom) / 2 + scrollY - POPUP_HEIGHT / 2,
+      viewportHeight + scrollY - POPUP_HEIGHT - SPACING
+    ));
+    transform = 'translateY(0)';
+  }
+  // 5. Fallback: Ekranın ortasında
+  else {
+    finalX = Math.max(SPACING, (viewportWidth - POPUP_WIDTH) / 2);
+    finalY = Math.max(SPACING + scrollY, (viewportHeight - POPUP_HEIGHT) / 2 + scrollY);
+    transform = 'translateY(0)';
+  }
+
+  return { x: finalX, y: finalY, transform };
+}
+
+/**
  * Translate popup'ı gösterir (loading state)
  */
 function showTranslatePopup() {
@@ -552,14 +620,18 @@ function showTranslatePopup() {
   translatePopup = document.createElement('div');
   translatePopup.className = 'cevir-translate-popup';
 
-  // Position hesapla
-  const rect = selectionRange?.getBoundingClientRect() || { top: 100, left: 100, right: 200 };
-  const popupX = Math.min(rect.left, window.innerWidth - 420);
-  const popupY = rect.top + window.scrollY - 10;
+  // Position hesapla (smart positioning)
+  const rect = selectionRange?.getBoundingClientRect() || {
+    top: window.innerHeight / 2,
+    bottom: window.innerHeight / 2 + 20,
+    left: window.innerWidth / 2,
+    right: window.innerWidth / 2 + 100
+  };
 
-  translatePopup.style.left = `${popupX}px`;
-  translatePopup.style.top = `${popupY}px`;
-  translatePopup.style.transform = 'translateY(-100%)';
+  const position = calculateOptimalPosition(rect);
+  translatePopup.style.left = `${position.x}px`;
+  translatePopup.style.top = `${position.y}px`;
+  translatePopup.style.transform = position.transform;
 
   // Loading state
   translatePopup.innerHTML = `
