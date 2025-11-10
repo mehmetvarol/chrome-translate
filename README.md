@@ -34,19 +34,18 @@ Gemini AI ile güçlendirilmiş, glassmorphic tasarım dili ile tasarlanmış pr
    cd chrome-translate
    ```
 
-2. API anahtarınızı yapılandırın:
+2. **API anahtarınızı yapılandırın**:
    ```bash
-   # .env.example dosyasını .env olarak kopyalayın
-   cp .env.example .env
-
    # constants.example.js'i constants.js olarak kopyalayın
    cp utils/constants.example.js utils/constants.js
    ```
 
-3. `utils/constants.js` dosyasını açın ve `YOUR_API_KEY_HERE` yerine kendi API anahtarınızı yazın:
+3. `utils/constants.js` dosyasını herhangi bir editörle açın ve `YOUR_API_KEY_HERE` yerine kendi API anahtarınızı yazın:
    ```javascript
-   export const GEMINI_API_KEY = "sizin-api-anahtariniz";
+   export const GEMINI_API_KEY = "BURAYA_KENDI_API_KEYINIZI_YAPIŞTIRIN";
    ```
+
+   ⚠️ **ÖNEMLİ**: `utils/constants.js` dosyası `.gitignore`'da yer alır ve asla git'e commit edilmez!
 
 4. Chrome'da şu adrese gidin: `chrome://extensions/`
 
@@ -55,12 +54,6 @@ Gemini AI ile güçlendirilmiş, glassmorphic tasarım dili ile tasarlanmış pr
 6. **"Load unpacked"** butonuna tıklayın
 
 7. `chrome-translate` klasörünü seçin
-
-### 3. API Key'i Ayarlayın
-
-1. Extension ikonuna tıklayın
-2. Gemini API Key'inizi yapıştırın
-3. **"Kaydet"** butonuna tıklayın
 
 ✅ Hazırsınız! Artık çeviri yapabilirsiniz.
 
@@ -112,9 +105,9 @@ Her etkileşim, dikkatle tasarlanmış animasyonlarla desteklenmiştir:
 ## 🏗️ Teknik Mimari
 
 ```
-translate/
-├── manifest.json              # Chrome Extension Manifest V3
-├── service-worker.js          # Background script (çeviri orchestration)
+chrome-translate/
+├── manifest.json              # Chrome Extension Manifest V3 (ES Module support)
+├── service-worker.js          # Background script (ES Module - imports utils/)
 ├── content/
 │   ├── content-script.js      # Selection detection, UI injection
 │   └── content-styles.css     # Glassmorphic components
@@ -123,9 +116,10 @@ translate/
 │   ├── popup.js               # State management
 │   └── popup.css              # Modern design system
 ├── utils/
-│   ├── translator.js          # Gemini API integration
-│   ├── storage.js             # Chrome storage wrapper
-│   └── constants.js           # Configuration
+│   ├── translator.js          # Gemini API integration (ES Module)
+│   ├── storage.js             # Chrome storage wrapper (ES Module)
+│   ├── constants.js           # Configuration (GİTİGNORE - API key burada!)
+│   └── constants.example.js   # Example config (şablon dosya)
 └── assets/
     └── icons/                 # Extension icons
 ```
@@ -133,10 +127,11 @@ translate/
 ### Teknolojiler
 
 - **Manifest V3**: En güncel Chrome Extension standardı
-- **Gemini AI**: Google'ın en gelişmiş dil modeli
-- **ES Modules**: Modern JavaScript architecture
+- **ES Modules**: Modern JavaScript modül sistemi (service worker "type": "module")
+- **Gemini AI**: Google'ın Gemini 2.5 Flash modeli
 - **CSS Animations**: GPU-accelerated smooth transitions
 - **Chrome Storage API**: Secure local storage
+- **TreeWalker API**: Efficient DOM traversal for page translation
 
 ---
 
@@ -146,21 +141,25 @@ translate/
 
 ⚠️ **ÖNEMLİ GÜVENLİK NOTU**: API anahtarınızı asla git repository'sine commit etmeyin!
 
-API key'i iki şekilde ayarlayabilirsiniz:
+Bu proje **ES Module** yapısı kullanır ve API key'i güvenli şekilde constants.js dosyasından import eder:
 
-**1. UI üzerinden** (Önerilen - Production):
-- Extension popup'ında API key alanına yapıştırın
-- API key Chrome storage'da güvenli şekilde saklanır
+**Yapılandırma Adımları**:
 
-**2. Kod içinde** (Development):
-- `utils/constants.example.js` dosyasını `utils/constants.js` olarak kopyalayın
-- `GEMINI_API_KEY` değişkenini güncelleyin:
+1. `utils/constants.example.js` dosyasını `utils/constants.js` olarak kopyalayın:
+   ```bash
+   cp utils/constants.example.js utils/constants.js
+   ```
 
-```javascript
-export const GEMINI_API_KEY = 'YOUR_API_KEY_HERE';
-```
+2. `utils/constants.js` dosyasını açın ve API key'inizi ekleyin:
+   ```javascript
+   export const GEMINI_API_KEY = 'BURAYA_KENDI_API_KEYINIZI_YAPIŞTIRIN';
+   ```
+
+3. Extension'ı Chrome'da yeniden yükleyin
 
 **Not**: `utils/constants.js` dosyası `.gitignore`'da yer almaktadır ve git'e commit edilmeyecektir.
+
+**Manifest V3 + ES Modules**: Bu proje modern Chrome Extension yapısı kullanır. Service worker "type": "module" olarak yapılandırılmıştır ve ES6 import/export kullanır.
 
 ### Icon Güncelleme
 
