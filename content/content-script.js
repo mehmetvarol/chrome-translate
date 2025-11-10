@@ -509,9 +509,22 @@ function makeDraggable(popup, dragHandle) {
       return;
     }
 
+    // Transform'u kaldırmadan önce gerçek pozisyonu hesapla
     const rect = popup.getBoundingClientRect();
-    initialX = e.clientX - rect.left;
-    initialY = e.clientY - rect.top;
+
+    // Popup'ın gerçek görünen pozisyonunu al (transform dahil)
+    const computedLeft = rect.left + window.scrollX;
+    const computedTop = rect.top + window.scrollY;
+
+    // Transform'u kaldır ve pozisyonu ayarla
+    popup.style.left = `${computedLeft}px`;
+    popup.style.top = `${computedTop}px`;
+    popup.style.transform = 'none';
+
+    // Yeni rect değerini al (transform kaldırıldıktan sonra)
+    const newRect = popup.getBoundingClientRect();
+    initialX = e.clientX - newRect.left;
+    initialY = e.clientY - newRect.top;
 
     isDragging = true;
     dragHandle.style.cursor = 'grabbing';
@@ -533,7 +546,7 @@ function makeDraggable(popup, dragHandle) {
 
       popup.style.left = `${currentX}px`;
       popup.style.top = `${currentY}px`;
-      popup.style.transform = 'none';
+      // Transform zaten dragStart'ta kaldırıldı
     }
   }
 
