@@ -557,6 +557,71 @@ function makeDraggable(popup, dragHandle) {
 }
 
 /**
+ * Popup'ı yeniden boyutlandırılabilir yapar (resizable)
+ */
+function makeResizable(popup, resizeHandle) {
+  const MIN_WIDTH = 300;
+  const MAX_WIDTH = 800;
+  const MIN_HEIGHT = 150;
+  const MAX_HEIGHT = 600;
+
+  let isResizing = false;
+  let startX, startY;
+  let startWidth, startHeight;
+
+  resizeHandle.addEventListener('mousedown', startResize);
+  document.addEventListener('mousemove', resize);
+  document.addEventListener('mouseup', stopResize);
+
+  function startResize(e) {
+    isResizing = true;
+    startX = e.clientX;
+    startY = e.clientY;
+
+    // Mevcut boyutları al
+    const rect = popup.getBoundingClientRect();
+    startWidth = rect.width;
+    startHeight = rect.height;
+
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  function resize(e) {
+    if (!isResizing) return;
+
+    e.preventDefault();
+
+    // Yeni boyutları hesapla
+    const deltaX = e.clientX - startX;
+    const deltaY = e.clientY - startY;
+
+    let newWidth = startWidth + deltaX;
+    let newHeight = startHeight + deltaY;
+
+    // Min/max sınırlarını uygula
+    newWidth = Math.max(MIN_WIDTH, Math.min(newWidth, MAX_WIDTH));
+    newHeight = Math.max(MIN_HEIGHT, Math.min(newHeight, MAX_HEIGHT));
+
+    // Viewport sınırlarını kontrol et
+    const rect = popup.getBoundingClientRect();
+    const maxWidthFromViewport = window.innerWidth - rect.left - 20;
+    const maxHeightFromViewport = window.innerHeight - rect.top - 20;
+
+    newWidth = Math.min(newWidth, maxWidthFromViewport);
+    newHeight = Math.min(newHeight, maxHeightFromViewport);
+
+    // Boyutları uygula
+    popup.style.width = `${newWidth}px`;
+    popup.style.height = `${newHeight}px`;
+  }
+
+  function stopResize() {
+    isResizing = false;
+  }
+}
+
+/**
  * Popup için en uygun konumu hesaplar (smart positioning)
  */
 function calculateOptimalPosition(selectionRect) {
@@ -659,6 +724,7 @@ function showTranslatePopup() {
         <div class="cevir-skeleton-line short"></div>
       </div>
     </div>
+    <div class="cevir-resize-handle"></div>
   `;
 
   // Close button
@@ -667,6 +733,10 @@ function showTranslatePopup() {
   // Draggable özelliği ekle
   const header = translatePopup.querySelector('.cevir-popup-header');
   makeDraggable(translatePopup, header);
+
+  // Resizable özelliği ekle
+  const resizeHandle = translatePopup.querySelector('.cevir-resize-handle');
+  makeResizable(translatePopup, resizeHandle);
 
   document.body.appendChild(translatePopup);
 
@@ -706,6 +776,7 @@ function updatePopupContent(translation, original) {
         Kopyala
       </button>
     </div>
+    <div class="cevir-resize-handle"></div>
   `;
 
   // Event listeners
@@ -715,6 +786,10 @@ function updatePopupContent(translation, original) {
   // Draggable özelliği yeniden ekle
   const header = translatePopup.querySelector('.cevir-popup-header');
   makeDraggable(translatePopup, header);
+
+  // Resizable özelliği yeniden ekle
+  const resizeHandle = translatePopup.querySelector('.cevir-resize-handle');
+  makeResizable(translatePopup, resizeHandle);
 }
 
 /**
@@ -731,6 +806,7 @@ function showPopupError(errorMessage) {
     <div class="cevir-popup-body">
       <div class="cevir-error-message">${escapeHtml(errorMessage)}</div>
     </div>
+    <div class="cevir-resize-handle"></div>
   `;
 
   translatePopup.querySelector('.cevir-close-btn').addEventListener('click', hideTranslatePopup);
@@ -738,6 +814,10 @@ function showPopupError(errorMessage) {
   // Draggable özelliği yeniden ekle
   const header = translatePopup.querySelector('.cevir-popup-header');
   makeDraggable(translatePopup, header);
+
+  // Resizable özelliği yeniden ekle
+  const resizeHandle = translatePopup.querySelector('.cevir-resize-handle');
+  makeResizable(translatePopup, resizeHandle);
 }
 
 /**
