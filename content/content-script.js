@@ -490,9 +490,63 @@ async function translateText(text) {
 }
 
 /**
+ * Popup'ı sürüklenebilir yapar
+ */
+function makeDraggable(popup, dragHandle) {
+  let isDragging = false;
+  let currentX;
+  let currentY;
+  let initialX;
+  let initialY;
+
+  dragHandle.addEventListener('mousedown', dragStart);
+  document.addEventListener('mousemove', drag);
+  document.addEventListener('mouseup', dragEnd);
+
+  function dragStart(e) {
+    // Close ve copy butonlarına tıklanırsa drag başlatma
+    if (e.target.closest('.cevir-close-btn') || e.target.closest('.cevir-copy-btn')) {
+      return;
+    }
+
+    const rect = popup.getBoundingClientRect();
+    initialX = e.clientX - rect.left;
+    initialY = e.clientY - rect.top;
+
+    isDragging = true;
+    dragHandle.style.cursor = 'grabbing';
+  }
+
+  function drag(e) {
+    if (isDragging) {
+      e.preventDefault();
+
+      currentX = e.clientX - initialX;
+      currentY = e.clientY - initialY;
+
+      // Ekran sınırlarını kontrol et
+      const maxX = window.innerWidth - popup.offsetWidth;
+      const maxY = window.innerHeight - popup.offsetHeight;
+
+      currentX = Math.max(0, Math.min(currentX, maxX));
+      currentY = Math.max(0, Math.min(currentY, maxY + window.scrollY));
+
+      popup.style.left = `${currentX}px`;
+      popup.style.top = `${currentY}px`;
+      popup.style.transform = 'none';
+    }
+  }
+
+  function dragEnd() {
+    isDragging = false;
+    dragHandle.style.cursor = 'move';
+  }
+}
+
+/**
  * Translate popup'ı gösterir (loading state)
  */
-function showTranslatePopup(text) {
+function showTranslatePopup() {
   hideTranslatePopup();
 
   translatePopup = document.createElement('div');
@@ -524,6 +578,10 @@ function showTranslatePopup(text) {
 
   // Close button
   translatePopup.querySelector('.cevir-close-btn').addEventListener('click', hideTranslatePopup);
+
+  // Draggable özelliği ekle
+  const header = translatePopup.querySelector('.cevir-popup-header');
+  makeDraggable(translatePopup, header);
 
   document.body.appendChild(translatePopup);
 
@@ -568,6 +626,10 @@ function updatePopupContent(translation, original) {
   // Event listeners
   translatePopup.querySelector('.cevir-close-btn').addEventListener('click', hideTranslatePopup);
   translatePopup.querySelector('.cevir-copy-btn').addEventListener('click', handleCopy);
+
+  // Draggable özelliği yeniden ekle
+  const header = translatePopup.querySelector('.cevir-popup-header');
+  makeDraggable(translatePopup, header);
 }
 
 /**
@@ -587,6 +649,10 @@ function showPopupError(errorMessage) {
   `;
 
   translatePopup.querySelector('.cevir-close-btn').addEventListener('click', hideTranslatePopup);
+
+  // Draggable özelliği yeniden ekle
+  const header = translatePopup.querySelector('.cevir-popup-header');
+  makeDraggable(translatePopup, header);
 }
 
 /**
